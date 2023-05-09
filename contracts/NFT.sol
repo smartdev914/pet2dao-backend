@@ -72,6 +72,9 @@ contract RoleNFT is ERC721, ERC721URIStorage, Ownable {
     function burnToken(
         uint256 tokenId
     ) external onlyOwner  {
+        address owner = ownerOf(tokenId);
+        delete tokenIdOf[owner];
+        delete idOfIdentity[tokenId];
         _burn(tokenId);
     }
 
