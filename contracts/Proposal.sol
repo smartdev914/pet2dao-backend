@@ -18,20 +18,15 @@ contract DAO is Ownable {
     IRoleNFT public roleNFT;
     Proposal[] private _proposals;
 
-    bytes32 private constant DEVELOPMENT_MANAGER =
-        keccak256("DEVELOPMENT_MANAGER");
-    bytes32 private constant PRODUCT_MANAGER = keccak256("PRODUCT_MANAGER");
-    bytes32 private constant FINANCIAL_MANAGER = keccak256("FINANCIAL_MANAGER");
-    bytes32 private constant CEO = keccak256("CEO");
-
     mapping(uint256 => bytes32[]) private permissionOfApprove;
 
     constructor(address _roleNFT) {
         roleNFT = IRoleNFT(_roleNFT);
-        permissionOfApprove[0].push(DEVELOPMENT_MANAGER);
-        permissionOfApprove[1].push(PRODUCT_MANAGER);
-        permissionOfApprove[2].push(FINANCIAL_MANAGER);
-        permissionOfApprove[3].push(CEO);
+    }
+
+    modifier onlyAdmin() {
+        require(roleNFT.isAdmin(msg.sender), "Restricted to members.");
+        _;
     }
 
     function createProposal(string memory _contentURI, bool _isPublic) public {
@@ -75,7 +70,7 @@ contract DAO is Ownable {
         revert("No permission");
     }
 
-    function deleteProposal(uint index) public onlyOwner {
+    function deleteProposal(uint index) public onlyAdmin {
         require(index < _proposals.length, "Invalid Index");
         _proposals[index] = _proposals[_proposals.length - 1];
         _proposals.pop();
@@ -100,18 +95,18 @@ contract DAO is Ownable {
     function addPermission(
         uint256 _level,
         string memory _role
-    ) public onlyOwner {
+    ) public onlyAdmin {
         permissionOfApprove[_level].push(keccak256(abi.encodePacked(_role)));
     }
 
-    function deletePermission(uint256 _level, uint index) public onlyOwner {
+    function deletePermission(uint256 _level, uint index) public onlyAdmin {
         bytes32[] storage _permission = permissionOfApprove[_level];
         require(index < _permission.length, "Invalid Index");
         _permission[index] = _permission[_permission.length - 1];
         _permission.pop();
     }
 
-    function setRoleNFT(address _roleNFT) external onlyOwner {
+    function setRoleNFT(address _roleNFT) external onlyAdmin {
         roleNFT = IRoleNFT(_roleNFT);
     }
 
